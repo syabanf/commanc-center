@@ -1,0 +1,21 @@
+{
+  "name": "gpi-command-center",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev": "pnpm --filter @gpi/admin dev",
+    "build": "turbo run build",
+    "preview": "pnpm --filter @gpi/admin preview",
+    "typecheck": "turbo run typecheck",
+    "test": "pnpm --filter @gpi/fixtures test",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.9.8",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "tsx": "^4.23.15",
+    "turbo": "^2.11.2",
+    "typescript": "~5.9.3"
+  }
+}

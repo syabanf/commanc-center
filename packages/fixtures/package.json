@@ -1,0 +1,10 @@
+{
+  "name": "@gpi/fixtures",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit", "test": "tsx --test src/*.test.ts" },
+  "dependencies": { "@gpi/types": "workspace:*" },
+  "devDependencies": { "@gpi/tsconfig": "workspace:*", "@types/node": "^26.6.2", "tsx": "^4.23.15", "typescript": "~5.9.3" }
+}

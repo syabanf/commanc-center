@@ -1,0 +1,105 @@
+/* WIT UI style tokens for the GPI Command Center (Tailwind v4 @theme).
+   Palette sampled from the Gulf logo: Gulf orange as the accent, Gulf navy as the ink, a navy-tinted grey ladder, and a lighter navy for informational states.
+   Classes: bg-accent, text-ink, bg-surface, bg-card, border-border, text-muted, bg-info-soft … */
+@import 'tw-animate-css';
+
+@theme {
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* project palette */
+  --color-accent: #ff6319;
+  --color-accent-strong: #c2410c;
+  --color-accent-dark: #9a3412;
+  --color-accent-soft: #fff1ea;
+  --color-info: #2456c4;
+  --color-info-soft: #edf2fc;
+
+  /* neutral ladder */
+  --color-ink: #022779;
+  --color-ink-2: #0b3290;
+  --color-ink-3: #163d9e;
+  --color-on-ink: #ffffff;
+  --color-on-ink-muted: #c3cde8;
+
+  --color-surface: #f1f3f8;
+  --color-surface-2: #f6f7fb;
+  --color-card: #ffffff;
+  --color-border: #e2e6ef;
+  --color-silver: #b9c1d1;
+  /* Passes WCAG AA for normal text on both card and surface backgrounds. */
+  --color-muted: #5b6478;
+  --color-body: #2a3245;
+  --color-foreground: #0b1633;
+
+  /* status tints: soft on cards, solid only on dots or the single most urgent card */
+  --color-success: #047857;
+  --color-success-soft: #d1fae5;
+  --color-warning: #975000;
+  --color-warning-soft: #fef3c7;
+  --color-danger: var(--color-accent);
+  --color-danger-soft: var(--color-accent-soft);
+
+  /* chart de-emphasis grey: context marks beside the one highlighted value */
+  --color-chart-muted: #d3d8e3;
+
+  --radius-card: 1.5rem;
+  --radius-hero: 1.75rem;
+  --radius-pill: 9999px;
+
+  --shadow-card: 0 1px 2px rgb(2 25 80 / 0.03), 0 8px 24px -12px rgb(2 25 80 / 0.12);
+  --shadow-float: 0 12px 40px -12px rgb(2 25 80 / 0.25);
+  --shadow-glow: 0 8px 20px -8px color-mix(in srgb, var(--color-accent) 60%, transparent);
+  --shadow-up: 0 -10px 30px -14px rgb(2 25 80 / 0.25);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+  }
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-border);
+  }
+  ::selection {
+    background: var(--color-accent);
+    color: #fff;
+  }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility safe-b {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility safe-t {
+  padding-top: env(safe-area-inset-top);
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

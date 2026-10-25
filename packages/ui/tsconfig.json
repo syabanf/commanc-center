@@ -1,0 +1,4 @@
+{
+  "extends": "@gpi/tsconfig/library.json",
+  "include": ["src"]
+}

@@ -1,0 +1,25 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "admin",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@gpi/admin",
+        "dev"
+      ],
+      "port": 5373
+    },
+    {
+      "name": "admin-preview",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@gpi/admin",
+        "preview"
+      ],
+      "port": 4373
+    }
+  ]
+}
