@@ -8,7 +8,7 @@ export function BottomBar({ className, ...props }: ComponentProps<'nav'>) {
   return (
     <nav
       className={cn(
-        'inset-x-3 bottom-3 px-3 md:hidden fixed z-40 mb-[env(safe-area-inset-bottom)] flex h-[68px] items-center justify-between rounded-[22px] bg-ink shadow-float',
+        'inset-x-4 bottom-4 px-2 md:hidden fixed z-40 mb-[env(safe-area-inset-bottom)] flex h-[76px] items-center justify-between rounded-[22px] bg-ink shadow-float',
         className,
       )}
       {...props}
@@ -26,8 +26,8 @@ export type BottomBarItemProps = Omit<ComponentProps<'button'>, 'children'> & {
 }
 
 /**
- * Icon-only slot. With `asChild`, pass one link element as the child; its content is replaced
- * by the icon and badge (same pattern as RailItem).
+ * Compact labeled slot. With `asChild`, pass one link element as the child; its content is replaced
+ * by the icon, label and badge (same pattern as RailItem).
  */
 export function BottomBarItem({
   icon,
@@ -44,7 +44,7 @@ export function BottomBarItem({
     'aria-current': active ? ('page' as const) : undefined,
     'data-active': active,
     className: cn(
-      'relative flex size-11 shrink-0 items-center justify-center rounded-2xl text-on-ink-muted transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:scale-[0.98] [&_svg]:size-5 [&_svg]:shrink-0',
+      'relative flex min-w-0 h-14 flex-1 flex-col items-center justify-center gap-1 rounded-2xl text-on-ink-muted transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:scale-[0.98] [&_svg]:size-5 [&_svg]:shrink-0',
       'data-[active=true]:bg-accent-strong data-[active=true]:text-white data-[active=true]:shadow-glow',
       className,
     ),
@@ -52,6 +52,7 @@ export function BottomBarItem({
   const content = (
     <>
       {icon}
+      <span className="font-semibold max-w-full truncate text-[10px] leading-none">{label}</span>
       <CountBadge count={badge} tone="white" className="-right-1 -top-1 absolute" />
     </>
   )

@@ -20,7 +20,15 @@ export function Header({ onMenu }: { onMenu: () => void }) {
         <Menu />
       </Button>
       <div className="min-w-0 shrink">
-        <h2 className="text-lg font-bold leading-tight truncate">{navFor(pathname).label}</h2>
+        <div className="gap-2 flex items-center">
+          <h2 className="text-lg font-bold leading-tight truncate">{navFor(pathname).label}</h2>
+          <span
+            className="px-2 py-0.5 font-bold tracking-wide shrink-0 rounded-full bg-accent-soft text-[10px] text-accent-strong uppercase"
+            title="All readings and dates in this prototype are simulated"
+          >
+            Demo data
+          </span>
+        </div>
         <p className="text-xs truncate text-muted">
           {fmtWeekday(now)} {fmtDate(now)} · <span className="font-mono tabular-nums">{fmtClock(now)}</span>{' '}
           AST<span className="sm:inline hidden"> · {fmtUtcClock(now)}</span>
@@ -35,7 +43,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
             tone={fleet.stale ? 'danger' : linkIssues ? 'warning' : 'success'}
             pulse={linkIssues > 0}
           />
-          {linkIssues ? `${linkIssues} of 5 sites reporting late` : 'All 5 sites live'}
+          {linkIssues ? `${linkIssues} of 5 sites reporting late` : 'All 5 sites reporting on time'}
         </span>
         <NotificationsButton />
         <UserMenu />

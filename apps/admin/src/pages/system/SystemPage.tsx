@@ -34,43 +34,70 @@ import {
   StatCard,
 } from '@gpi/ui'
 import { Cable, CircleDashed, RadioTower, Unplug } from 'lucide-react'
-import { useNavigate } from 'react-router'
+import { Navigate, useNavigate } from 'react-router'
 import { FreshnessBadge, LinkBadge, PriorityBadge, SourceStateBadge } from '../../components/badges'
 import { paths } from '../../components/links'
 import { useSearchParam } from '../../lib/use-search-param'
 import { useLive } from '../../state/live'
-import { LinkHealth } from './LinkHealth'
+import { LinkDesign, LinkHealth } from './LinkHealth'
 import { TagCapacity } from './TagCapacity'
 
 const TABS = ['sources', 'link', 'tags', 'alarms', 'escalation', 'platform'] as const
 type Tab = (typeof TABS)[number]
 const KINDS = Object.keys(SOURCE_KIND_LABEL) as SourceKind[]
 
-export function SystemPage() {
-  const [tab, setTab] = useSearchParam<Tab>('tab', 'sources', TABS)
+export function DataHealthPage() {
+  return <SystemPage mode="health" />
+}
+
+export function SystemPage({ mode = 'design' }: { mode?: 'health' | 'design' }) {
+  const [tab, setTab] = useSearchParam<Tab>('tab', mode === 'health' ? 'sources' : 'tags', TABS)
+  if (mode === 'design' && (tab === 'sources' || tab === 'link')) {
+    return <Navigate to={paths.dataHealth(tab)} replace />
+  }
+  if (mode === 'health' && tab !== 'sources' && tab !== 'link') {
+    return <Navigate to={paths.system(tab)} replace />
+  }
+  const activeTab =
+    mode === 'health'
+      ? tab === 'link'
+        ? 'link'
+        : 'sources'
+      : tab === 'sources' || tab === 'link'
+        ? 'tags'
+        : tab
   const count = (state: string) => DATA_SOURCES.filter((s) => s.state === state).length
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Data sources"
-        description="See which site systems feed the console, how each Starlink link performs, and the tag, alarm and platform rules from the SCADA specification."
+        title={mode === 'health' ? 'Data health' : 'System design'}
+        description={
+          mode === 'health'
+            ? 'Check sample freshness, site interfaces and Starlink links before acting on plant readings.'
+            : 'Review tag capacity, alarm rules, escalation and platform assumptions from the SCADA specification.'
+        }
         actions={
           <PillTabs
-            value={tab}
+            value={activeTab}
             onValueChange={(v) => setTab(v as Tab)}
-            items={[
-              { value: 'sources', label: 'Interfaces' },
-              { value: 'link', label: 'Starlink link' },
-              { value: 'tags', label: 'Tag capacity' },
-              { value: 'alarms', label: 'Alarm register', count: ALARM_RULES.length },
-              { value: 'escalation', label: 'Escalation' },
-              { value: 'platform', label: 'Platform' },
-            ]}
+            items={
+              mode === 'health'
+                ? [
+                    { value: 'sources', label: 'Site interfaces' },
+                    { value: 'link', label: 'Starlink links' },
+                  ]
+                : [
+                    { value: 'tags', label: 'Tag capacity' },
+                    { value: 'alarms', label: 'Alarm register', count: ALARM_RULES.length },
+                    { value: 'escalation', label: 'Escalation' },
+                    { value: 'platform', label: 'Platform' },
+                  ]
+            }
           />
         }
       />
-      {tab === 'sources' && (
+      {activeTab === 'sources' && (
         <>
           <div className="gap-3 sm:gap-4 xl:grid-cols-4 grid grid-cols-2">
             <StatCard
@@ -104,11 +131,16 @@ export function SystemPage() {
           <SourcesMatrix />
         </>
       )}
-      {tab === 'link' && <LinkHealth />}
-      {tab === 'tags' && <TagCapacity />}
-      {tab === 'alarms' && <AlarmRegister />}
-      {tab === 'escalation' && <Escalation />}
-      {tab === 'platform' && <Platform />}
+      {activeTab === 'link' && <LinkHealth />}
+      {activeTab === 'tags' && <TagCapacity />}
+      {activeTab === 'alarms' && <AlarmRegister />}
+      {activeTab === 'escalation' && <Escalation />}
+      {activeTab === 'platform' && (
+        <>
+          <Platform />
+          <LinkDesign />
+        </>
+      )}
     </div>
   )
 }

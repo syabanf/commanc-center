@@ -1,4 +1,4 @@
-import { CAMERAS, PLANTS, fmtClock } from '@gpi/fixtures'
+import { CAMERAS, PLANTS } from '@gpi/fixtures'
 import type { Camera } from '@gpi/types'
 import {
   Banner,
@@ -10,31 +10,30 @@ import {
   DialogHeader,
   DialogTitle,
   PageHeader,
-  StatusDot,
   cn,
 } from '@gpi/ui'
 import { Cctv, VideoOff } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParam } from '../../lib/use-search-param'
-import { plantById, useNow } from '../../state/live'
+import { plantById } from '../../state/live'
 
 const SITES = ['all', ...PLANTS.map((p) => p.id)]
 
 export function CctvPage() {
   const [site, setSite] = useSearchParam<string>('site', 'all', SITES)
   const [focused, setFocused] = useState<Camera | null>(null)
-  const now = useNow(1000)
   const cameras = CAMERAS.filter((c) => site === 'all' || c.plantId === site)
   const offline = cameras.filter((c) => !c.online).length
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title="CCTV"
-        description="Watch the four site cameras at each plant. The same tiles run on the video wall."
+        title="Camera readiness"
+        description="Review the four planned camera positions at each plant."
       />
-      <Banner tone="info" title="Camera tiles are placeholders">
-        Live video connects once each site recorder is surveyed and reachable over the VPN (RTSP or ONVIF).
+      <Banner tone="info" title="Video previews are unavailable">
+        Camera connection states are simulated. Video can be shown after each site recorder is surveyed and
+        connected over the VPN.
       </Banner>
       <ChipRow>
         {SITES.map((id) => (
@@ -50,11 +49,11 @@ export function CctvPage() {
         ))}
       </ChipRow>
       <p className="text-xs text-muted">
-        {cameras.length - offline} of {cameras.length} cameras online
+        {cameras.length - offline} of {cameras.length} connections marked available in the demo
       </p>
       <div className="gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4 grid grid-cols-1">
         {cameras.map((camera) => (
-          <CameraTile key={camera.id} camera={camera} now={now} onOpen={() => setFocused(camera)} />
+          <CameraTile key={camera.id} camera={camera} onOpen={() => setFocused(camera)} />
         ))}
       </div>
       <Dialog open={focused !== null} onOpenChange={(open) => !open && setFocused(null)}>
@@ -66,10 +65,12 @@ export function CctvPage() {
                   {plantById.get(focused.plantId)!.name} · {focused.name}
                 </DialogTitle>
                 <DialogDescription>
-                  {focused.online ? 'Recorder reachable. Stream placeholder.' : 'No signal from this camera.'}
+                  {focused.online
+                    ? 'Connection marked available in demo. No video stream.'
+                    : 'Connection marked unavailable in demo. No video stream.'}
                 </DialogDescription>
               </DialogHeader>
-              <CameraFeed camera={focused} now={now} large />
+              <CameraFeed camera={focused} large />
             </>
           )}
         </DialogContent>
@@ -78,16 +79,16 @@ export function CctvPage() {
   )
 }
 
-function CameraTile({ camera, now, onOpen }: { camera: Camera; now: number; onOpen: () => void }) {
+function CameraTile({ camera, onOpen }: { camera: Camera; onOpen: () => void }) {
   const plant = plantById.get(camera.plantId)!
   return (
     <button
       type="button"
       onClick={onOpen}
-      aria-label={`${plant.name} ${camera.name}, ${camera.online ? 'online' : 'no signal'}. Open larger view`}
+      aria-label={`${plant.name} ${camera.name}, ${camera.online ? 'connection marked available' : 'connection marked unavailable'} in demo, no video stream. Open larger view`}
       className="overflow-hidden rounded-card bg-card text-left shadow-card transition-colors hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none active:scale-[0.98]"
     >
-      <CameraFeed camera={camera} now={now} />
+      <CameraFeed camera={camera} />
       <span className="gap-2 p-4 flex items-center justify-between">
         <span className="min-w-0">
           <span className="text-sm font-semibold block truncate">{camera.name}</span>
@@ -95,13 +96,12 @@ function CameraTile({ camera, now, onOpen }: { camera: Camera; now: number; onOp
             {plant.code} · {plant.name}
           </span>
         </span>
-        <StatusDot tone={camera.online ? 'success' : 'danger'} />
       </span>
     </button>
   )
 }
 
-function CameraFeed({ camera, now, large = false }: { camera: Camera; now: number; large?: boolean }) {
+function CameraFeed({ camera, large = false }: { camera: Camera; large?: boolean }) {
   return (
     <span
       className={cn(
@@ -111,19 +111,9 @@ function CameraFeed({ camera, now, large = false }: { camera: Camera; now: numbe
     >
       {camera.online ? <Cctv className="size-10 opacity-40" /> : <VideoOff className="size-10 opacity-60" />}
       <span className="left-3 top-3 gap-1.5 bg-white/10 px-2 py-0.5 font-bold tracking-wider text-white absolute flex items-center rounded-full text-[10px] uppercase">
-        {camera.online ? (
-          <>
-            <StatusDot tone="accent" pulse /> Live
-          </>
-        ) : (
-          'No signal'
-        )}
+        {camera.online ? 'Demo connection available' : 'Demo connection unavailable'}
       </span>
-      {camera.online && (
-        <span className="bottom-3 right-3 text-white/80 absolute font-mono text-[11px] tabular-nums">
-          {fmtClock(now)}
-        </span>
-      )}
+      <span className="bottom-3 right-3 text-white/80 absolute text-[11px]">No video stream</span>
     </span>
   )
 }

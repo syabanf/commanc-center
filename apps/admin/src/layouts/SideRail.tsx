@@ -1,8 +1,7 @@
-import { Rail, RailCollapse, RailItem, RailWorkspace, cn } from '@gpi/ui'
-import { Eye } from 'lucide-react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router'
+import { Rail, RailCollapse, RailItem, cn } from '@gpi/ui'
+import { Link, NavLink, useLocation } from 'react-router'
 import { GulfMark } from '../components/GulfMark'
-import { NAV, navFor } from './nav'
+import { NAV, NAV_GROUPS, navFor } from './nav'
 import { useNewAlarmCount } from './useAlarmCount'
 
 export function SideRail({
@@ -17,7 +16,6 @@ export function SideRail({
   const { pathname } = useLocation()
   const current = navFor(pathname)
   const newAlarms = useNewAlarmCount()
-  const navigate = useNavigate()
 
   return (
     <Rail
@@ -39,34 +37,38 @@ export function SideRail({
           )}
         </Link>
       }
-      workspace={
-        <RailWorkspace
-          icon={<Eye />}
-          kicker="Phase 1"
-          name="Read-only monitoring"
-          expanded={expanded}
-          title="Plant control stays with the site crews. The Command Center reads data only."
-          onClick={() => navigate('/system')}
-        />
-      }
       footer={canExpand ? <RailCollapse expanded={expanded} onToggle={onToggle} /> : undefined}
     >
-      {NAV.map((item) => {
-        const Icon = item.icon
-        return (
-          <RailItem
-            key={item.to}
-            asChild
-            expanded={expanded}
-            active={item.id === current.id}
-            icon={<Icon />}
-            label={item.label}
-            badge={item.id === 'alarms' ? newAlarms : 0}
-          >
-            <NavLink to={item.to} end={item.to === '/'} />
-          </RailItem>
-        )
-      })}
+      {NAV_GROUPS.map((group, index) => (
+        <div key={group} className="w-full">
+          {expanded ? (
+            <p className="px-3 pb-0.5 pt-1 font-bold tracking-wider text-[10px] text-on-ink-muted uppercase">
+              {group}
+            </p>
+          ) : index > 0 ? (
+            <div aria-hidden className="my-2 w-8 border-white/15 mx-auto border-t" />
+          ) : null}
+          <div className="gap-0.5 flex flex-col items-center">
+            {NAV.filter((item) => item.group === group).map((item) => {
+              const Icon = item.icon
+              return (
+                <RailItem
+                  key={item.to}
+                  asChild
+                  expanded={expanded}
+                  active={item.id === current.id}
+                  className={expanded ? 'h-[33px]' : undefined}
+                  icon={<Icon />}
+                  label={item.label}
+                  badge={item.id === 'alarms' ? newAlarms : 0}
+                >
+                  <NavLink to={item.to} end={item.to === '/'} />
+                </RailItem>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </Rail>
   )
 }

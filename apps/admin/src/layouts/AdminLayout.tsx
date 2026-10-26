@@ -41,7 +41,7 @@ export function AdminLayout() {
   }, [pathname])
 
   return (
-    <div className="gap-4 p-3 lg:p-4 print:bg-white print:p-0 relative flex h-dvh overflow-clip bg-surface print:block print:h-auto print:overflow-visible">
+    <div className="gap-5 p-4 2xl:p-5 print:bg-white print:p-0 relative flex h-dvh overflow-clip bg-surface print:block print:h-auto print:overflow-visible">
       <div aria-hidden className="inset-0 pointer-events-none absolute overflow-hidden print:hidden">
         <div
           className="blur-xl absolute -top-[30%] -right-[8%] h-[120%] w-[70%] opacity-70"
@@ -51,7 +51,7 @@ export function AdminLayout() {
       <div className="md:block relative hidden shrink-0 print:hidden">
         <SideRail expanded={expanded} canExpand={isDesktop} onToggle={() => setExpandedPref(!expandedPref)} />
       </div>
-      <div className="min-w-0 gap-4 relative flex flex-1 flex-col">
+      <div className="min-w-0 gap-5 relative flex flex-1 flex-col">
         <nav aria-label="Skip links">
           <a
             href="#main"
@@ -65,7 +65,7 @@ export function AdminLayout() {
           id="main"
           tabIndex={-1}
           ref={mainRef}
-          className="min-h-0 pb-24 pr-0.5 md:pb-2 print:p-0 relative flex-1 overflow-y-auto print:overflow-visible"
+          className="min-h-0 pb-28 pr-0.5 md:pb-2 print:p-0 relative flex-1 overflow-y-auto print:overflow-visible"
         >
           {storageError && (
             <Banner

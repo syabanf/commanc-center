@@ -108,7 +108,11 @@ export const AuxStateBadge = ({ state }: { state: AuxState }) => (
   </Badge>
 )
 
-const FRESHNESS_LABEL: Record<Freshness, string> = { fresh: 'Live', late: 'Late data', stale: 'Stale data' }
+const FRESHNESS_LABEL: Record<Freshness, string> = {
+  fresh: 'Current sample',
+  late: 'Late data',
+  stale: 'Stale data',
+}
 /** Stale-data warning (Q22): every live number names how old its sample is. */
 export const FreshnessBadge = ({ freshness }: { freshness: Freshness }) => (
   <Badge variant={freshness === 'fresh' ? 'success' : freshness === 'late' ? 'warning' : 'danger'} dot>

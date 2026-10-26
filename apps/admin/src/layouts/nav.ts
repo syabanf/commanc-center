@@ -10,6 +10,7 @@ import {
   ListOrdered,
   MonitorPlay,
   Network,
+  Database,
   Siren,
 } from 'lucide-react'
 
@@ -18,20 +19,25 @@ export interface NavItem {
   label: string
   icon: LucideIcon
   to: string
+  group: 'Operations' | 'Analysis' | 'Delivery' | 'Planning'
 }
 
+export const NAV_GROUPS = ['Operations', 'Analysis', 'Delivery', 'Planning'] as const
+
 export const NAV: NavItem[] = [
-  { id: '', label: 'Fleet overview', icon: LayoutGrid, to: '/' },
-  { id: 'plants', label: 'Plants', icon: Factory, to: '/plants' },
-  { id: 'alarms', label: 'Alarms', icon: Siren, to: '/alarms' },
-  { id: 'events', label: 'Event list', icon: ListOrdered, to: '/events' },
-  { id: 'insights', label: 'Insights', icon: Lightbulb, to: '/insights' },
-  { id: 'fuel', label: 'Fuel', icon: Fuel, to: '/fuel' },
-  { id: 'projects', label: 'Projects', icon: HardHat, to: '/projects' },
-  { id: 'cctv', label: 'CCTV', icon: Cctv, to: '/cctv' },
-  { id: 'room', label: 'Control room', icon: MonitorPlay, to: '/room' },
-  { id: 'reports', label: 'Reports', icon: ChartColumn, to: '/reports' },
-  { id: 'system', label: 'Data sources', icon: Network, to: '/system' },
+  { id: '', label: 'Fleet overview', icon: LayoutGrid, to: '/', group: 'Operations' },
+  { id: 'alarms', label: 'Alarms', icon: Siren, to: '/alarms', group: 'Operations' },
+  { id: 'plants', label: 'Plants', icon: Factory, to: '/plants', group: 'Operations' },
+  { id: 'events', label: 'Events', icon: ListOrdered, to: '/events', group: 'Operations' },
+  { id: 'data-health', label: 'Data health', icon: Network, to: '/data-health', group: 'Operations' },
+  { id: 'insights', label: 'Insights', icon: Lightbulb, to: '/insights', group: 'Analysis' },
+  { id: 'fuel', label: 'Fuel', icon: Fuel, to: '/fuel', group: 'Analysis' },
+  { id: 'reports', label: 'Reports', icon: ChartColumn, to: '/reports', group: 'Analysis' },
+  { id: 'projects', label: 'Projects', icon: HardHat, to: '/projects', group: 'Delivery' },
+  { id: 'cctv', label: 'Camera readiness', icon: Cctv, to: '/cctv', group: 'Planning' },
+  { id: 'room', label: 'Control room design', icon: MonitorPlay, to: '/room', group: 'Planning' },
+  { id: 'system', label: 'System design', icon: Network, to: '/system', group: 'Planning' },
+  { id: 'master', label: 'Master data', icon: Database, to: '/master', group: 'Planning' },
 ]
 
 /** The nav item a path belongs to, by its first segment. */

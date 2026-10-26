@@ -24,7 +24,7 @@ export function ControlRoomPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Control room"
+        title="Control room design"
         description="The GPI Command Center room in Al Khobar, with the video wall and workstations the SCADA specification asks for."
       />
       <div className="gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-4 grid grid-cols-1">

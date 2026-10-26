@@ -1,6 +1,7 @@
 import {
   ALARM_RULES,
   ESCALATION_RULES,
+  SCADA_EVENTS,
   assignBlocker,
   closeBlocker,
   escalationDueAt,
@@ -18,11 +19,13 @@ import {
   ALARM_STATUS_LABEL,
   ALARM_VERB_LABEL,
   ESCALATION_LABEL,
+  SCADA_EVENT_LABEL,
   type Alarm,
   type AlarmStatus,
 } from '@gpi/types'
 import {
   Button,
+  Badge,
   Card,
   CardContent,
   CardHeader,
@@ -69,6 +72,15 @@ export function AlarmDetailPage() {
   const dueAt = escalationDueAt(alarm)
   const closedAt = [...alarm.history].reverse().find((e) => e.verb === 'resolved')?.at
   const openFor = (closedAt ? toMs(closedAt) : now) - toMs(alarm.raisedAt)
+  const relatedEvents = SCADA_EVENTS.filter(
+    (event) =>
+      event.plantId === alarm.plantId &&
+      (!alarm.unitId || event.unitId === alarm.unitId) &&
+      Math.abs(toMs(event.sourceAt) - toMs(alarm.raisedAt)) <= 2 * 60 * 60_000,
+  )
+    .sort((a, b) => Number(b.firstOut) - Number(a.firstOut) || a.sourceAt.localeCompare(b.sourceAt))
+    .slice(0, 3)
+  const eventQuery = `?site=${alarm.plantId}${alarm.unitId ? `&unit=${alarm.unitId}` : ''}`
 
   // The next lifecycle step, shown only to roles that may take it.
   const next: { label: string; run: () => void; blocker: string | null } | null = (() => {
@@ -113,7 +125,7 @@ export function AlarmDetailPage() {
   })
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="gap-2 flex flex-wrap items-center justify-between">
         <BackButton fallback={paths.alarms()} />
         <div className="gap-2 flex flex-wrap items-center">
@@ -205,6 +217,75 @@ export function AlarmDetailPage() {
 
       <Card className="p-5">
         <Steps steps={steps} />
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Investigate this alarm</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <p className="text-sm text-muted">
+            No approved response procedure is available in this demo. Check the source data and coordinate the
+            response with the site crew.
+          </p>
+          <div className="gap-3 flex flex-wrap">
+            {unit && (
+              <Button asChild variant="outline" size="sm">
+                <Link to={paths.unit(plant.id, unit.id)}>Unit readings</Link>
+              </Button>
+            )}
+            <Button asChild variant="outline" size="sm">
+              <Link
+                to={paths.site3D(
+                  plant.id,
+                  unit
+                    ? `unit:${unit.id}`
+                    : alarm.kind === 'comms_loss'
+                      ? 'link'
+                      : alarm.kind === 'low_tank_level' || alarm.kind === 'fuel_imbalance'
+                        ? 'tank'
+                        : 'export',
+                )}
+              >
+                View equipment in 3D
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to={paths.plant(plant.id, 'trend')}>Plant trend</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to={paths.events(eventQuery)}>Event sequence</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to={paths.dataHealth(alarm.kind === 'comms_loss' ? 'link' : 'sources')}>Data health</Link>
+            </Button>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">
+              Events within two hours of this alarm
+            </p>
+            {relatedEvents.length ? (
+              <ul className="space-y-3">
+                {relatedEvents.map((event) => (
+                  <li
+                    key={event.id}
+                    className="gap-3 rounded-2xl px-4 py-3 text-sm flex items-start bg-surface-2"
+                  >
+                    <span className="w-14 text-xs shrink-0 font-mono text-muted tabular-nums">
+                      {fmtTime(event.sourceAt)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="font-semibold">{SCADA_EVENT_LABEL[event.kind]}</span> · {event.message}
+                    </span>
+                    {event.firstOut && <Badge variant="danger">First-out</Badge>}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted">No matching source event in this window.</p>
+            )}
+          </div>
+        </CardContent>
       </Card>
 
       <div className="gap-4 lg:grid-cols-2 grid grid-cols-1">

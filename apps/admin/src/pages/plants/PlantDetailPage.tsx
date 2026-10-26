@@ -32,8 +32,8 @@ import {
   SegmentedControl,
 } from '@gpi/ui'
 import { Cctv, CircleCheck, HardHat, Siren } from 'lucide-react'
-import { Suspense, lazy, useMemo } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Suspense, lazy, useEffect, useMemo } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { AlarmRow } from '../../components/AlarmRow'
 import { BackButton } from '../../components/BackButton'
 import { EXHAUST_LIMIT_C, HeroMetric } from '../../components/HeroMetric'
@@ -67,10 +67,17 @@ export function PlantDetailPage() {
   const { now, byPlant } = useLive()
   const { alarms } = useStore().state
   const navigate = useNavigate()
+  const { hash } = useLocation()
   const insights = useInsights()
   const [tab, setTab] = useSearchParam<Tab>('tab', 'plan', TABS)
   const [planView, setPlanView] = useSearchParam<PlanView>('view', '2d', PLAN_VIEWS)
   const trend = useMemo(() => (plant ? plantTrend(plant, UNITS, now) : []), [plant, now])
+
+  useEffect(() => {
+    if (hash !== '#site-view') return
+    const frame = requestAnimationFrame(() => document.getElementById('site-view')?.scrollIntoView())
+    return () => cancelAnimationFrame(frame)
+  }, [hash])
 
   if (!plant) return <NotFoundCard title="Plant not found" fallback={paths.plants} />
   const reading = byPlant.get(plant.id)!
@@ -165,7 +172,7 @@ export function PlantDetailPage() {
         insights={insights.filter((i) => i.plantId === plant.id)}
       />
 
-      <Card>
+      <Card id="site-view">
         <UnderlineTabs
           className="px-5 pt-2"
           value={tab}

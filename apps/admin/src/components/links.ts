@@ -2,6 +2,8 @@ export const paths = {
   overview: '/',
   plants: '/plants',
   plant: (id: string, tab?: string) => `/plants/${id}${tab ? `?tab=${tab}` : ''}`,
+  site3D: (plantId: string, selected?: string) =>
+    `/plants/${plantId}?view=3d${selected ? `&select=${encodeURIComponent(selected)}` : ''}#site-view`,
   unit: (plantId: string, unitId: string) => `/plants/${plantId}/units/${unitId}`,
   /** The 3D model replaying a plant's event list from one record. */
   replay: (plantId: string, eventId: string) => `/plants/${plantId}?view=3d&mode=replay&event=${eventId}`,
@@ -15,5 +17,6 @@ export const paths = {
   insights: (area?: string) => `/insights${area ? `?area=${area}` : ''}`,
   room: '/room',
   reports: '/reports',
+  dataHealth: (tab?: string) => `/data-health${tab ? `?tab=${tab}` : ''}`,
   system: (tab?: string) => `/system${tab ? `?tab=${tab}` : ''}`,
 }

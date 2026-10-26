@@ -346,7 +346,7 @@ function zoneRows(zone: SiteZoneKind, plant: Plant, reading: PlantReading): Row[
             tone: starlink ? tone(starlink.state) : linkUp ? 'ok' : 'alarm',
             on: linkUp,
             details: [{ label: 'Link', value: plant.link }],
-            link: { label: 'Open link health', to: paths.system('link') },
+            link: { label: 'Open link health', to: paths.dataHealth('link') },
           },
         ],
         [

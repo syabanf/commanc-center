@@ -54,43 +54,48 @@ export function LinkHealth() {
           )
         })}
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>How the link is designed</CardTitle>
-          <CardDescription>
-            From section 6.1 of the SCADA specification. GPI supplies the terminals and service.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <KeyValue
-            bare
-            labelWidth="lg"
-            items={[
-              {
-                label: 'Security',
-                value: 'Encrypted site-to-site VPN, terminating on the plant OT firewall',
-              },
-              {
-                label: 'Outages',
-                value: 'Store-and-forward at each plant, automatic back-fill of the central historian',
-              },
-              {
-                label: 'Bandwidth',
-                value: 'Report by exception with deadbands; suppliers state average and peak per plant',
-              },
-              {
-                label: 'Time stamps',
-                value: 'Applied at the plant, so delayed data keeps its original time',
-              },
-              { label: 'Monitoring', value: 'Latency and link-loss alarms for every plant' },
-              {
-                label: 'Secondary link',
-                value: '4G/LTE or VSAT with automatic failover, priced as an option',
-              },
-            ]}
-          />
-        </CardContent>
-      </Card>
     </div>
+  )
+}
+
+export function LinkDesign() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>How the link is designed</CardTitle>
+        <CardDescription>
+          From section 6.1 of the SCADA specification. GPI supplies the terminals and service.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <KeyValue
+          bare
+          labelWidth="lg"
+          items={[
+            {
+              label: 'Security',
+              value: 'Encrypted site-to-site VPN, terminating on the plant OT firewall',
+            },
+            {
+              label: 'Outages',
+              value: 'Store-and-forward at each plant, automatic back-fill of the central historian',
+            },
+            {
+              label: 'Bandwidth',
+              value: 'Report by exception with deadbands; suppliers state average and peak per plant',
+            },
+            {
+              label: 'Time stamps',
+              value: 'Applied at the plant, so delayed data keeps its original time',
+            },
+            { label: 'Monitoring', value: 'Latency and link-loss alarms for every plant' },
+            {
+              label: 'Secondary link',
+              value: '4G/LTE or VSAT with automatic failover, priced as an option',
+            },
+          ]}
+        />
+      </CardContent>
+    </Card>
   )
 }

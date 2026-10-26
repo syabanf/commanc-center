@@ -143,7 +143,7 @@ export function YemenMap({ className }: { className?: string }) {
 
 export function MapLegend() {
   const items: [MarkerState, string][] = [
-    ['normal', 'Live'],
+    ['normal', 'Current sample'],
     ['late', 'Late data'],
     ['stale', 'Stale or offline'],
     ['alarm', 'Critical or high alarm'],

@@ -1,6 +1,7 @@
 import {
   PLANTS,
   SCADA_EVENTS,
+  UNITS,
   SPEC,
   fmtDate,
   fmtDuration,
@@ -36,6 +37,12 @@ const GROUPS: FilterGroup<ScadaEvent>[] = [
     label: 'Plant',
     options: PLANTS.map((p) => ({ value: p.id, label: p.name })),
     match: (e, v) => e.plantId === v,
+  },
+  {
+    id: 'unit',
+    label: 'Unit',
+    options: UNITS.map((u) => ({ value: u.id, label: u.code })),
+    match: (e, v) => e.unitId === v,
   },
   {
     id: 'group',
@@ -197,7 +204,7 @@ export function EventsPage() {
   return (
     <div>
       <PageHeader
-        title="Event list"
+        title="Events"
         description={`Sequence of Events from every plant, time-stamped at the source device to ${SPEC.soeResolutionMs} ms and kept in order when a link drops.`}
         actions={
           can('report.export') && (

@@ -144,7 +144,7 @@ export function ReportsPage() {
         }
       />
       <p className="text-xs hidden text-muted print:block">
-        GPI Command Center · {PERIOD_LABEL[period]} · printed {fmtDate(now)}
+        GPI Command Center · Simulated demo data · {PERIOD_LABEL[period]} · printed {fmtDate(now)}
       </p>
 
       <Card variant="ink" className="p-5">
@@ -163,8 +163,8 @@ export function ReportsPage() {
             unit-operation objective is a planning target, not a guarantee.
           </li>
           <li>
-            Right now {fmtNumber(fleet.mw, 1)} MW is on load of {fleet.capacityMw} MW planned, with {openHigh}{' '}
-            critical or high alarms open.
+            Right now {fmtNumber(fleet.mw, 1)} MW is on load of {commissionedMw()} MW commissioned (
+            {fleet.capacityMw} MW planned), with {openHigh} critical or high alarms open.
           </li>
           <li>
             Collections over five months reached {fmtPercent(collected / billed)} of billing, leaving{' '}

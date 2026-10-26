@@ -43,7 +43,11 @@ const TILE: Record<WallTile, { label: string; to: string; shows: string }> = {
   alarms: { label: 'Alarms', to: paths.alarms(), shows: 'Critical and open alarm counts, latest alarm' },
   events: { label: 'Event list', to: paths.events(), shows: 'Latest Sequence of Events records' },
   fuel: { label: 'Fuel', to: paths.fuel, shows: 'HFO day tank level per plant' },
-  links: { label: 'Starlink links', to: paths.system('link'), shows: 'Link state and round trip per plant' },
+  links: {
+    label: 'Starlink links',
+    to: paths.dataHealth('link'),
+    shows: 'Link state and round trip per plant',
+  },
 }
 
 const m = (v: number, digits = 1) => `${v.toFixed(digits)} m`

@@ -82,7 +82,9 @@ export function NotificationsButton() {
       <div className="gap-3 px-4 pb-2 pt-4 flex items-center justify-between">
         <div>
           <p className="text-base font-semibold">Notifications</p>
-          <p className="text-xs text-muted">{unread ? `${unread} unread` : 'All caught up'}</p>
+          <p className="text-xs text-muted">
+            {unread ? `${unread} unread` : 'All caught up'} · Reading does not acknowledge an alarm
+          </p>
         </div>
         <Button
           variant="ghost"
@@ -90,7 +92,7 @@ export function NotificationsButton() {
           onClick={() => setReadIds(items.map((i) => i.id))}
           disabled={!unread}
         >
-          Mark all read
+          Clear unread markers
         </Button>
       </div>
       <div className="p-2 max-h-[min(70dvh,480px)] overflow-y-auto">

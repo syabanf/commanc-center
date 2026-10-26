@@ -25,7 +25,7 @@ export function Rail({ expanded, header, action, workspace, footer, children, cl
     <aside
       data-expanded={expanded}
       className={cn(
-        'py-4 flex h-full flex-col rounded-hero bg-ink text-on-ink shadow-float transition-[width] duration-200',
+        'py-3 flex h-full flex-col rounded-hero bg-ink text-on-ink shadow-float transition-[width] duration-200',
         expanded ? 'w-60 px-3' : 'w-[76px] items-center',
         className,
       )}
@@ -36,7 +36,7 @@ export function Rail({ expanded, header, action, workspace, footer, children, cl
       <nav
         aria-label="Main"
         className={cn(
-          'mt-3 min-h-0 gap-1 p-1 no-scrollbar flex w-full flex-1 flex-col overflow-y-auto',
+          'mt-2 min-h-0 gap-1 p-1 flex w-full flex-1 flex-col overflow-y-auto',
           !expanded && 'items-center',
         )}
       >
@@ -44,7 +44,7 @@ export function Rail({ expanded, header, action, workspace, footer, children, cl
       </nav>
       {workspace !== undefined && <div className="mt-3 flex w-full shrink-0 justify-center">{workspace}</div>}
       {footer !== undefined && (
-        <div className={cn('mt-3 gap-1 flex w-full shrink-0 flex-col', !expanded && 'items-center')}>
+        <div className={cn('mt-2 gap-1 flex w-full shrink-0 flex-col', !expanded && 'items-center')}>
           {footer}
         </div>
       )}

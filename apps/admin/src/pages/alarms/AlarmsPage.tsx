@@ -1,4 +1,4 @@
-import { HOUR, PLANTS, fmtAgo, isSuppressed, toMs } from '@gpi/fixtures'
+import { HOUR, PLANTS, escalationDueAt, fmtAgo, isOpen, isSuppressed, toMs } from '@gpi/fixtures'
 import {
   ALARM_KIND_LABEL,
   ALARM_PRIORITIES,
@@ -57,6 +57,13 @@ const QUICK_VIEWS: QuickView[] = [
 
 const statusMatches = (a: Alarm, f: StatusFilter) =>
   f === 'all' || (f === 'open' ? OPEN_ALARM_STATUSES.includes(a.status) : a.status === f)
+
+/** Put actionable alarms first, then higher priority and the nearest escalation deadline. */
+const byAttention = (a: Alarm, b: Alarm) =>
+  Number(isOpen(b)) - Number(isOpen(a)) ||
+  ALARM_PRIORITIES.indexOf(a.priority) - ALARM_PRIORITIES.indexOf(b.priority) ||
+  (escalationDueAt(a) ?? Infinity) - (escalationDueAt(b) ?? Infinity) ||
+  b.raisedAt.localeCompare(a.raisedAt)
 
 export function AlarmsPage() {
   const { alarms } = useStore().state
@@ -192,6 +199,13 @@ export function AlarmsPage() {
             {isSuppressed(a) && <Badge variant="muted">Suppressed</Badge>}
           </span>
           <span className="max-w-xs text-xs block truncate text-muted">{a.reading}</span>
+          <span className="text-xs md:hidden block text-muted">
+            {plantById.get(a.plantId)?.name}
+            {a.unitId ? ` · ${unitById.get(a.unitId)?.code}` : ''}
+          </span>
+          <span className="text-xs sm:hidden block text-muted">
+            {ALARM_STATUS_LABEL[a.status]} · {personName(a.assigneeId)}
+          </span>
         </button>
       ),
     },
@@ -220,7 +234,12 @@ export function AlarmsPage() {
       header: 'Status',
       hideBelow: 'sm',
       sortValue: (a) => a.status,
-      cell: (a) => <AlarmStatusBadge status={a.status} />,
+      cell: (a) => (
+        <span className="gap-1 flex flex-col items-start">
+          <AlarmStatusBadge status={a.status} />
+          <span className="text-xs lg:hidden text-muted">{personName(a.assigneeId)}</span>
+        </span>
+      ),
     },
     {
       id: 'owner',
@@ -333,12 +352,15 @@ export function AlarmsPage() {
           </p>
         )}
       </div>
+      <p className="mb-2 text-xs text-muted">
+        Default action order: open alarms first, then priority and the nearest escalation deadline. Select a
+        column to sort another way.
+      </p>
       <DataTable
         columns={columns}
-        rows={visible}
+        rows={[...visible].sort(byAttention)}
         getRowKey={(a) => a.id}
         onRowClick={(a) => navigate(paths.alarm(a.id))}
-        initialSort={{ id: 'raised', desc: true }}
         pageSize={15}
         resetPageKey={`${status}|${filters.key}|${q}`}
         empty={

@@ -62,6 +62,10 @@ const byUrgency = (a: Alarm, b: Alarm) =>
 export function OverviewPage() {
   const [view, setView] = usePersistentState<View>('gpi.admin.overview', 'operations')
   const { now } = useLive()
+  const { alarms } = useStore().state
+  const active = alarms.filter((alarm) => isOpen(alarm) && !isSuppressed(alarm))
+  const criticalCount = active.filter((alarm) => alarm.priority === 'critical').length
+  const newCount = active.filter((alarm) => alarm.status === 'new').length
   return (
     <div className="space-y-4">
       <h1 className="sr-only">Fleet overview</h1>
@@ -71,7 +75,35 @@ export function OverviewPage() {
           5 plants · 300 MW planned · values every 5 s · updated {fmtTime(now)}
         </p>
       </div>
-      {view === 'operations' ? <OperationsView /> : <ManagementView />}
+      {view === 'operations' ? (
+        <OperationsView />
+      ) : (
+        <>
+          {(criticalCount > 0 || newCount > 0) && (
+            <Card className="gap-3 p-4 flex flex-wrap items-center justify-between">
+              <div>
+                <p className="font-semibold">Operational attention</p>
+                <p className="text-xs text-muted">
+                  Open alarms still need action while you review management figures.
+                </p>
+              </div>
+              <div className="gap-2 flex flex-wrap">
+                {criticalCount > 0 && (
+                  <Button asChild size="sm">
+                    <Link to={paths.alarms('?priority=critical')}>{criticalCount} critical</Link>
+                  </Button>
+                )}
+                {newCount > 0 && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={paths.alarms('?status=new')}>{newCount} not acknowledged</Link>
+                  </Button>
+                )}
+              </div>
+            </Card>
+          )}
+          <ManagementView />
+        </>
+      )}
     </div>
   )
 }
@@ -115,7 +147,7 @@ function OperationsView() {
       key: 'late',
       label: 'Sites reporting late',
       count: fleet.late + fleet.stale,
-      to: paths.system(),
+      to: paths.dataHealth(),
       icon: <RadioTower />,
       urgent: false,
     },
@@ -167,7 +199,7 @@ function OperationsView() {
           <div className="gap-3 flex flex-wrap items-start justify-between">
             <div>
               <p className="gap-2 font-semibold tracking-wider flex items-center text-[11px] text-on-ink-muted uppercase">
-                <StatusDot tone="accent" pulse /> Fleet output, live
+                <StatusDot tone="accent" pulse /> Simulated fleet output
               </p>
               <p className="mt-1 text-2xl font-bold tracking-tight">Five plants, one view</p>
               <p className="text-sm text-on-ink-muted">
@@ -179,18 +211,18 @@ function OperationsView() {
           <div className="mt-6 gap-2 flex items-end leading-none">
             <span className="text-6xl font-bold tracking-tight tabular-nums">{fmtNumber(fleet.mw, 1)}</span>
             <span className="pb-1 text-sm font-semibold text-on-ink-muted">
-              MW of {fleet.capacityMw} MW planned
+              MW of {fleetCommissionedMw} MW commissioned
             </span>
           </div>
           <div className="mt-4">
             <div className="mb-1.5 text-xs flex items-center justify-between text-on-ink-muted">
-              <span>Share of planned capacity</span>
-              <span className="tabular-nums">{fmtPercent(fleet.mw / fleet.capacityMw)}</span>
+              <span>Share of commissioned capacity</span>
+              <span className="tabular-nums">{fmtPercent(fleet.mw / fleetCommissionedMw)}</span>
             </div>
             <ProgressBar
-              value={fleet.mw / fleet.capacityMw}
+              value={fleet.mw / fleetCommissionedMw}
               tone="white"
-              aria-label="Fleet output against planned capacity"
+              aria-label="Fleet output against commissioned capacity"
             />
           </div>
           <div className="mt-5 gap-3 sm:grid-cols-4 grid grid-cols-2">
@@ -214,7 +246,9 @@ function OperationsView() {
             ariaLabel="Fleet output over the last 24 hours"
           />
           <div className="gap-2 pt-5 mt-auto flex flex-wrap items-center justify-between">
-            <span className="text-xs text-on-ink-muted">Last 24 h, hourly · Aden is under construction</span>
+            <span className="text-xs text-on-ink-muted">
+              Last 24 h, hourly · {fleet.capacityMw} MW planned · Aden is under construction
+            </span>
             <Button variant="onInk" size="sm" onClick={() => navigate(paths.plants)}>
               Open plants
               <ArrowRight />
@@ -278,7 +312,7 @@ function OperationsView() {
 
       <InsightsCard
         title="Insights"
-        description="What the console found in live readings and the last 30 days, most urgent first."
+        description="What the console found in simulated readings and the last 30 days, most urgent first."
         insights={insights.filter((i) => i.area !== 'commercial')}
       />
 
@@ -376,12 +410,12 @@ function OperationsView() {
           <CardHeader>
             <CardTitle>Output by plant</CardTitle>
             <CardDescription>
-              Live MW. The plant furthest below its commissioned capacity is in accent.
+              Simulated MW. The plant furthest below its commissioned capacity is in accent.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <BarList
-              ariaLabel="Live output by plant"
+              ariaLabel="Simulated output by plant"
               max={100}
               items={readings.map((r) => {
                 const plant = plantById.get(r.plantId)!

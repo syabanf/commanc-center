@@ -1,5 +1,6 @@
 import {
   PEOPLE,
+  CAMERAS,
   type PlantReading,
   SCENARIOS,
   SIM_DAY_TANK_L,
@@ -18,6 +19,7 @@ import {
   fmtPercent,
   isOpen,
   linkLatency,
+  siteLayout,
 } from '@gpi/fixtures'
 import {
   ALARM_KIND_LABEL,
@@ -32,7 +34,7 @@ import {
 import { Badge, Button, Chip, ChipRow, EmptyState, KeyValue, SegmentedControl, cn } from '@gpi/ui'
 import { Box, Maximize2, Pause, Play, RotateCcw, SkipBack, SkipForward } from 'lucide-react'
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useAuth } from '../../auth/auth'
 import { AlarmStatusBadge, PriorityBadge, UnitStateBadge } from '../../components/badges'
 import { EXHAUST_LIMIT_C } from '../../components/HeroMetric'
@@ -108,8 +110,45 @@ export function Site3D({ plant, reading }: { plant: Plant; reading: PlantReading
   const scene = useRef<SiteScene | null>(null)
   const [failed, setFailed] = useState(false)
   const [mode, setMode] = useSearchParam<Mode>('mode', 'live', MODES)
-  const [selected, setSelected] = useState<SelectKey | null>(null)
   const units = useMemo(() => unitsOf(plant.id), [plant.id])
+  const [selectionParams] = useSearchParams()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const route = useRef(location)
+  route.current = location
+  const selectable = useMemo(() => {
+    const layout = siteLayout(plant, units)
+    return new Set<SelectKey>([
+      'site',
+      'tank',
+      'link',
+      'separators',
+      'export',
+      ...units.map((unit) => `unit:${unit.id}` as const),
+      ...layout.zones.map((zone) => `zone:${zone.kind}` as const),
+      ...layout.transformers.map((_, index) => `transformer:${index}` as const),
+      ...layout.storageTanks.map((_, index) => `storage:${index}` as const),
+      ...CAMERAS.filter((camera) => camera.plantId === plant.id).map(
+        (camera) => `camera:${camera.name}` as const,
+      ),
+      ...(['control_room', 'workshop', 'gate'] as const).map((kind) => `building:${kind}` as const),
+      ...(['transfer', 'supply', 'header', 'return', 'bus', 'mv', 'hv', 'grid'] as const).map(
+        (id) => `flow:${id}` as const,
+      ),
+    ])
+  }, [plant, units])
+  const selectedParam = selectionParams.get('select') as SelectKey | null
+  const selected = selectedParam && selectable.has(selectedParam) ? selectedParam : null
+  const setSelected = (key: SelectKey | null) => {
+    const current = route.current
+    const next = new URLSearchParams(current.search)
+    if (key) next.set('select', key)
+    else next.delete('select')
+    navigate(
+      { pathname: current.pathname, search: next.toString(), hash: current.hash },
+      { replace: true, preventScrollReset: true },
+    )
+  }
   const sim = useSimulation(plant, reading, mode === 'sim')
   const replay = useReplay(plant, mode === 'replay')
   const { alarms } = useStore().state
@@ -154,7 +193,7 @@ export function Site3D({ plant, reading }: { plant: Plant; reading: PlantReading
       const mwOf = (id: string) => {
         const unit = units.find((u) => u.id === id)!
         const now = reading.units.find((r) => r.unitId === id)?.mw ?? 0
-        return step.units[id] === 'running' ? now || unit.ratingMw * unit.load : 0
+        return step.units[id] === 'running' ? now || unit.ratingMw * (unit.load || 0.8) : 0
       }
       const total = units.reduce((sum, u) => sum + mwOf(u.id), 0)
       const e = replay.event
@@ -219,8 +258,8 @@ export function Site3D({ plant, reading }: { plant: Plant; reading: PlantReading
   }
 
   return (
-    <div className="space-y-3">
-      <div className="gap-2 flex flex-wrap items-center justify-between">
+    <div className="space-y-5">
+      <div className="gap-3 flex flex-wrap items-center justify-between">
         <SegmentedControl
           aria-label="3D mode"
           size="sm"
@@ -234,8 +273,8 @@ export function Site3D({ plant, reading }: { plant: Plant; reading: PlantReading
         />
         {mode === 'sim' && <Badge variant="warning">Training simulation · nothing reaches the plant</Badge>}
       </div>
-      <div className="gap-4 xl:grid-cols-[minmax(0,1fr)_360px] grid grid-cols-1">
-        <div className="min-w-0 space-y-3">
+      <div className="gap-6 xl:grid-cols-[minmax(0,1fr)_360px] grid grid-cols-1">
+        <div className="min-w-0 space-y-4">
           <div className="rounded-2xl relative overflow-hidden bg-surface-2">
             <div
               ref={mount}
@@ -243,7 +282,7 @@ export function Site3D({ plant, reading }: { plant: Plant; reading: PlantReading
               aria-label={`3D model of ${plant.name}${mode === 'sim' ? ', simulation running' : ''}`}
               className="sm:aspect-[16/9] @container relative aspect-[4/3] w-full"
             />
-            <div className="right-3 top-3 gap-2 absolute flex">
+            <div className="right-4 top-4 gap-3 absolute flex">
               <Button
                 size="sm"
                 variant="secondary"
@@ -268,10 +307,10 @@ export function Site3D({ plant, reading }: { plant: Plant; reading: PlantReading
           {mode === 'sim' && <SimControls sim={sim} />}
           {mode === 'replay' && <ReplayControls replay={replay} />}
           <p className="text-xs text-muted">
-            Drag to orbit, scroll or pinch to zoom, select equipment to see its values and actions. The model
-            is schematic until the as-built drawings arrive.
+            Drag to orbit, scroll or pinch to zoom, then select equipment to inspect it. The model is
+            schematic until the as-built drawings arrive.
           </p>
-          <ChipRow aria-label="Select equipment">
+          <ChipRow className="gap-3 pb-2" aria-label="Select equipment">
             {units.map((u) => (
               <Chip
                 key={u.id}
@@ -300,7 +339,7 @@ export function Site3D({ plant, reading }: { plant: Plant; reading: PlantReading
             </Chip>
           </ChipRow>
         </div>
-        <aside className="min-w-0 space-y-3" aria-label="Selection and simulation">
+        <aside className="min-w-0 space-y-4" aria-label="Selection and simulation">
           {mode === 'sim' && sim.frame && <PracticePanel plant={plant} sim={sim} />}
           {mode === 'replay' && <ReplayLog replay={replay} />}
           <SelectionPanel
@@ -308,6 +347,7 @@ export function Site3D({ plant, reading }: { plant: Plant; reading: PlantReading
             reading={reading}
             display={display}
             frame={sim.frame}
+            mode={mode}
             selected={selected}
             onSelect={setSelected}
           />
@@ -410,7 +450,7 @@ function SimStrip({ frame }: { frame: SimFrame }) {
 function SimControls({ sim }: { sim: Simulation }) {
   const { scenario, blocker, tS, playing, speed } = sim
   return (
-    <div className="rounded-2xl p-4 space-y-3 bg-surface-2">
+    <div className="rounded-2xl p-5 space-y-4 bg-surface-2">
       <ChipRow aria-label="Scenario">
         {SCENARIOS.map((s) => (
           <Chip key={s.id} variant="filter" active={s.id === scenario.id} onClick={() => sim.restart(s.id)}>
@@ -469,7 +509,7 @@ function PracticePanel({ plant, sim }: { plant: Plant; sim: Simulation }) {
   const lead =
     PEOPLE.find((p) => p.plantId === plant.id && p.role === 'om_engineer')?.name ?? 'Plant O&M lead'
   return (
-    <div className="rounded-2xl p-4 space-y-3 bg-surface-2">
+    <div className="rounded-2xl p-5 space-y-4 bg-surface-2">
       <p className="font-semibold tracking-wider text-[11px] text-muted uppercase">Practice</p>
       {alarm ? (
         <div className="rounded-xl p-3 space-y-2 bg-card">
@@ -567,13 +607,13 @@ function ReplayControls({ replay }: { replay: Replay }) {
   const current = index >= 0 ? steps[index]!.event : null
   if (!steps.length) {
     return (
-      <div className="rounded-2xl p-4 text-sm bg-surface-2 text-muted">
+      <div className="rounded-2xl p-5 text-sm bg-surface-2 text-muted">
         The event list holds no records for this plant yet.
       </div>
     )
   }
   return (
-    <div className="rounded-2xl p-4 space-y-3 bg-surface-2">
+    <div className="rounded-2xl p-5 space-y-4 bg-surface-2">
       {current ? (
         <div className="gap-2 flex flex-wrap items-start justify-between">
           <div className="min-w-0">
@@ -657,7 +697,7 @@ function ReplayLog({ replay }: { replay: Replay }) {
     list.current?.querySelector('[aria-current="step"]')?.scrollIntoView({ block: 'nearest' })
   }, [replay.index])
   return (
-    <div className="rounded-2xl p-4 space-y-2 bg-surface-2">
+    <div className="rounded-2xl p-5 space-y-3 bg-surface-2">
       <p className="font-semibold tracking-wider text-[11px] text-muted uppercase">Event list replay</p>
       <ol ref={list} className="max-h-80 space-y-1 overflow-y-auto" aria-label="Recorded events">
         {replay.steps.map((s, i) => (
@@ -696,6 +736,7 @@ function SelectionPanel({
   reading,
   display,
   frame,
+  mode,
   selected,
   onSelect,
 }: {
@@ -703,6 +744,7 @@ function SelectionPanel({
   reading: PlantReading
   display: SceneDisplay
   frame: SimFrame | null
+  mode: Mode
   selected: SelectKey | null
   onSelect: (key: SelectKey | null) => void
 }) {
@@ -714,7 +756,7 @@ function SelectionPanel({
 
   if (!selected) {
     return (
-      <div className="rounded-2xl p-4 text-sm bg-surface-2 text-muted">
+      <div className="rounded-2xl p-5 text-sm bg-surface-2 text-muted">
         Select anything in the model: a generator, tank, transformer, building, zone or the ground for the
         whole plant.
       </div>
@@ -742,12 +784,12 @@ function SelectionPanel({
             { label: 'Output', value: `${fmtNumber(shown.mw, 1)} of ${unit.ratingMw} MW` },
             {
               label: 'Exhaust',
-              value: r && !frame ? `${fmtNumber(r.exhaustC)} °C` : 'Not simulated',
+              value: r && mode === 'live' ? `${fmtNumber(r.exhaustC)} °C` : 'Not in this mode',
               hidden: !r,
             },
             {
               label: 'Lube oil',
-              value: r && !frame ? `${fmtNumber(r.lubeBar, 1)} bar` : 'Not simulated',
+              value: r && mode === 'live' ? `${fmtNumber(r.lubeBar, 1)} bar` : 'Not in this mode',
               hidden: !r,
             },
             { label: 'Engine', value: unit.engine },
@@ -794,7 +836,7 @@ function SelectionPanel({
       />
     )
     related = open.filter((a) => a.kind === 'comms_loss')
-    link = { label: 'Open link health', to: paths.system('link') }
+    link = { label: 'Open link health', to: paths.dataHealth('link') }
   } else if (selected.startsWith('flow:')) {
     const id = selected.slice(5) as FlowId
     const running = units.filter((u) => display.units[u.id]?.state === 'running').length
@@ -994,11 +1036,15 @@ function SelectionPanel({
   }
 
   return (
-    <div className="rounded-2xl p-4 space-y-3 bg-surface-2">
+    <div className="rounded-2xl p-5 space-y-4 bg-surface-2">
       <div className="gap-2 flex items-start justify-between">
         <div>
           <p className="font-semibold tracking-wider text-[11px] text-muted uppercase">
-            {frame ? 'Selected · simulated' : 'Selected'}
+            {mode === 'sim'
+              ? 'Selected · simulated'
+              : mode === 'replay'
+                ? 'Selected · event replay'
+                : 'Selected'}
           </p>
           <h3 className="text-lg font-semibold">{title}</h3>
         </div>
@@ -1034,7 +1080,7 @@ function SelectionPanel({
           </ol>
         </div>
       ))}
-      {!frame && related.length > 0 && (
+      {mode === 'live' && related.length > 0 && (
         <div className="space-y-2">
           <p className="font-semibold tracking-wider text-[11px] text-muted uppercase">Open alarms</p>
           {related.map((a) => (
@@ -1042,8 +1088,8 @@ function SelectionPanel({
           ))}
         </div>
       )}
-      {frame && related.length > 0 && (
-        <p className="text-xs text-muted">Real alarm actions pause while the simulation runs.</p>
+      {mode !== 'live' && related.length > 0 && (
+        <p className="text-xs text-muted">Current alarm actions are available in Live mode.</p>
       )}
       {link && (
         <Button size="sm" variant="outline" onClick={() => navigate(link.to)}>
